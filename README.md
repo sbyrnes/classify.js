@@ -22,15 +22,38 @@ To use Classify.js, require the classify.js module and follow the 2 steps below.
     var Classifier = require('classify.js');
 
 #### STEP 1. Train your classifier.
-Classifier.train("GROUP-A", "Some input that belongs in GROUP-A");
-Classifier.train("GROUP-A", "Some other input that belongs in GROUP-A");
-Classifier.train("GROUP-B", "Some input that belongs in GROUP-B");
+
+Provide a series of training examples that specify the classification group and the input that matches that group. You should provide as many examples per group as possible. Note that all inputs for a given group should use exactly the same group name. 
+
+    Classifier.train("GROUP-A", "Some input that belongs in GROUP-A");
+    Classifier.train("GROUP-A", "Some other input that belongs in GROUP-A");
+    Classifier.train("GROUP-B", "Some input that belongs in GROUP-B");
 
 #### STEP 2. Classify.
-var group = Classifier.classify("Some input that should be GROUP-B");
 
-// group = 'GROUP-B'
+To classify, simply provide an input and the return value will be the name of the group that best matches the input. 
 
+    var group = Classifier.classify("Some input that should be GROUP-B");
 
+    // group = 'GROUP-B'
 
+Advanced 
+---------
 
+The classifier works by calculating the probability that a given input matches the patterns seen in the training examples. The classification group that has the highest probability of matching the input is considered the classification of the input. 
+
+However, in some cases it might be useful to retrieve the rank order of all possible groups along with their probabilities. This can be helpful when creating tools such as auto-complete text boxes on websites. To retrieve a rank ordered list of the groups for a given input (along with probabilities) you can do the following. 
+
+    var groupList = Classifier.rankGroups("Some input that should be GROUP-B");
+    
+    // groupList = [ { group: 'GROUP-B', probability: 0.75 }, { group: 'GROUP-A', probability: 0.45 } ]
+
+About Bayesian Statistics 
+---------
+Bayesian classifiers utilize a statistical tool known as Bayes' Theorem while allows you to calculate the conditional probability of two events based on other evidence. The Theorem is written as:
+
+P(A|B) = P(B|A) P(A) / P(B)
+
+The probability of A given B is equal to the probability of B given A times the probability of A divided by the probability of B. 
+
+'Naieve Bayes' refers to the fact that classifier has no prior knowledge of the inputs before the training begins. While this is a very general tool, it is often the case that adjusting the model based on information known about the groups ahead of time can produce better results. 
