@@ -1,4 +1,4 @@
-classify.js WORK IN PROGRESS
+classify.js
 ===========
 
 Naieve Bayesian Classifier in pure javascript.
