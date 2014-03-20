@@ -47,6 +47,8 @@ However, in some cases it might be useful to retrieve the rank order of all poss
     var groupList = Classifier.rankGroups("Some input that should be GROUP-B");
     
     // groupList = [ { group: 'GROUP-B', probability: 0.75 }, { group: 'GROUP-A', probability: 0.45 } ]
+    
+Note that the probabilities listed should not be considered accurate on their own, they are only useful in comparison to one another. For example, if a group has a probability of 0.8 that does not mean it's 80% likely, it means that it is four times more likely than something with a probability of 0.2. This is due to the nature of Naieve Bayesian statistics, where the form of the distribution is not known. 
 
 About Bayesian Statistics 
 ---------
@@ -54,6 +56,8 @@ Bayesian classifiers utilize a statistical tool known as Bayes' Theorem while al
 
 P(A|B) = P(B|A) P(A) / P(B)
 
-The probability of A given B is equal to the probability of B given A times the probability of A divided by the probability of B. 
+The probability of A given B is equal to the probability of B given A times the probability of A divided by the probability of B. In the case of this classifier, this formula is used to compute the probability of a given classification group (A) given an input (B). 
 
 'Naieve Bayes' refers to the fact that classifier has no prior knowledge of the inputs before the training begins. While this is a very general tool, it is often the case that adjusting the model based on information known about the groups ahead of time can produce better results. 
+
+One of the draw backs to this method is that the probabilities computed are not always reliable. This is because the distribution is not known ahead of time and the model is so simple it may learn incorrect distributions. 

@@ -1,93 +1,161 @@
 /**
- * Classify.js 
- * 
- * Javascript library for automated classification using Bayesian probability. 
+ * Classify.js
+ *
+ * Javascript library for automated classification using Bayesian probability.
  */
- 
+
  // Storage for the input parameters for the model
- var numTrainingExamples = 0;
- var groupFrequencyCount = new Object();
- 
- var numWords = 0;
- var wordFrequencyCount = new Object();
- 
+ var Classifier = function()
+ {
+   this.numTrainingExamples = 0;
+   this.groupFrequencyCount = new Object();
+
+   this.numWords = 0;
+   this.wordFrequencyCount = new Object();
+   this.groupWordTotal = new Object();
+   this.groupWordFrequencyCount = new Object();
+ }
+
  /** Trains the classifier with a known example.
  *
  * @param input An input value with a known classification
  * @param group The group the input should be classified as belonging to
  * @returns none
  */
-function train(group, input)
+Classifier.prototype.train = function(group, input)
 {
-	numTrainingExamples += 1;
-	incrementOrCreate(groupFrequencyCount, group);
-	
+  var self = this;
+
+	self.numTrainingExamples += 1;
+
+	incrementOrCreate(self.groupFrequencyCount, group);
+
+  var seenWord = new Object();
+
+  // TODO: Strip out non-alphanumeric characters.
 	input.split(" ").forEach(function(word) {
-		numWords += 1;
-	incrementOrCreate(wordFrequencyCount, word);
+		self.numWords += 1;
+
+    if(!seenWord[word])
+    {
+  		incrementOrCreate(self.wordFrequencyCount, word);
+      incrementOrCreate(self.groupWordTotal, group);
+      incrementOrCreateGroup(self.groupWordFrequencyCount, group, word);
+
+      seenWord[word] = true;
+    }
 	});
 }
 
- /** Provides the most likely group classification for an input. 
+ /** Provides the most likely group classification for an input.
  *
- * @param input An input value with unknown classification 
+ * @param input An input value with unknown classification
  * @returns The group the input is most likely a member of
  */
-function classify(input)
+Classifier.prototype.classify = function(input)
 {
-	var topRanked = rank(input)[0]; // just take the top ranked group
-	
+	var topRanked = this.rank(input)[0]; // just take the top ranked group
+
 	if(topRanked) return topRanked.group;
-	
+
 	return "No Matches";
 }
 
- /** Provides all possible groups for an input in ranked order of probability of matching. 
+ /** Provides all possible groups for an input in ranked order of probability of matching.
  *
- * @param input An input value with unknown classification 
- * @returns An array of groups and the probability the input belongs to one of them. 
+ * @param input An input value with unknown classification
+ * @returns An array of groups and the probability the input belongs to one of them.
  */
-function rank(input)
+Classifier.prototype.rank = function(input)
 {
-	var groups = Object.keys(groupFrequencyCount);
-	var groupProb = getGroupProbabilities();
-	
+  var self = this;
+
+  /**
+  console.log("Training examples: " + self.numTrainingExamples);
+  console.log("Group word totals: ");
+  console.log(JSON.stringify(self.groupWordTotal));
+  console.log("Group word frequency counts: ");
+  console.log(JSON.stringify(self.groupWordFrequencyCount));
+  */
+
+	var groups = Object.keys(self.groupFrequencyCount);
+	var groupProb = self.getGroupProbabilities();
+
 	var groupLikelihood = new Array();
 	var counter = 0;
 	groups.forEach(function(group) {
 		groupLikelihood[counter] = new Object();
 		groupLikelihood[counter].group = group;
-		groupLikelihood[counter].probability = groupProb[group];
-		
+		groupLikelihood[counter].probability = Math.log(groupProb[group]); // use logs of probability so we can add them later
+
 		counter++;
 	});
+
+	input.split(" ").forEach(function(word) {
+		for(var i = 0; i < groupLikelihood.length; i++)
+		{
+			var group = groupLikelihood[i].group;
+      var groupWordFreqCount = self.groupWordFrequencyCount[group];
+			if(groupWordFreqCount[word])
+			{
+				groupLikelihood[i].probability += Math.log(groupWordFreqCount[word]/self.groupFrequencyCount[group]) // TODO this needs to the probability of that word in that group
+			}
+		}
+	});
+
+  groupLikelihood.sort(function(a,b){return a.probability < b.probability});
 
 	return groupLikelihood;
 }
 
- /** Returns all training groups and their associated probabilities (simple frequencies). 
+ /** Returns all training groups and their associated probabilities (simple frequencies).
  *
- * @returns An object with properties names for the input groups whose values are the probability of that group. 
+ * @returns An object with properties names for the input groups whose values are the probability of that group.
  */
-function getGroupProbabilities()
+Classifier.prototype.getGroupProbabilities = function()
 {
+  var self = this;
+
 	var groups = new Object();
 
 	// get group probabilities
-	Object.keys(groupFrequencyCount).forEach(function(group) {
-		groups[group] = groupFrequencyCount[group] / numTrainingExamples;
+	Object.keys(self.groupFrequencyCount).forEach(function(group) {
+		groups[group] = self.groupFrequencyCount[group] / self.numTrainingExamples;
 	});
-	
+
 	return groups;
 }
 
-function incrementOrCreate(array, value)
+/**
+ * Returns number of unique groups seen in the training data.
+ */
+Classifier.prototype.getNumGroups = function()
 {
-	if(array[value]) array[value] += 1;
-	else 		     array[value] = 1;
+	return Object.keys(this.groupFrequencyCount).length;
 }
 
-module.exports.train = train;
-module.exports.classify = classify;
-module.exports.rank = rank;
+/**
+ * Looks for a field with the given value in the object and if found increments it. Otherwise, creates it with a value of 1.
+ */
+function incrementOrCreate(object, value)
+{
+	if(object[value]) object[value] += 1;
+	else 		         object[value] = 1;
+}
 
+/**
+ * Looks for a field with the given value in the object and if found increments it. Otherwise, creates it with a value of 1.
+ */
+function incrementOrCreateGroup(object, group, value)
+{
+  if(!object[group]) object[group] = new Object();
+
+  var myGroup = object[group];
+
+  if(myGroup[value]) myGroup[value] += 1;
+  else 		          myGroup[value] = 1;
+}
+
+module.exports = Classifier;
+
+module.exports.incrementOrCreate = incrementOrCreate;
