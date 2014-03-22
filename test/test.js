@@ -4,25 +4,21 @@
 var Classifier = require('../classify.js');
 
 
-// Tests the increment or create utility.
-exports['test incrementOrCreate'] = function(beforeExit, assert){
-    var testObj = new Object();
+// Test cleaning the input
+exports['test cleanInput'] = function(beforeExit, assert){
+  var classifier = new Classifier();
+  var group = classifier.train("GROUP", "Ver}}{\\y no'is;y input.");
 
-    Classifier.incrementOrCreate(testObj, "hello");
-    Classifier.incrementOrCreate(testObj, "hello");
-    Classifier.incrementOrCreate(testObj, "goodbye");
-
-    assert.equal(2, testObj["hello"]);
-    assert.equal(1, testObj["goodbye"]);
-    assert.isUndefined(testObj["nothing"])
+  assert.equal(3, Object.keys(classifier.wordFrequencyCount).length);
+  assert.equal(1, classifier.wordFrequencyCount["Very"]);
+  assert.equal(1, classifier.wordFrequencyCount["noisy"]);
+  assert.equal(1, classifier.wordFrequencyCount["input"]);
 };
 
 // Test no training inputs
 exports['test rank#noTrainingExamples'] = function(beforeExit, assert){
   var classifier = new Classifier();
 	var group = classifier.rank("Something that should be GROUP-B");
-
-	console.log(JSON.stringify(group));
 
     assert.equal(0, group.length);
 };

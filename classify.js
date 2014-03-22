@@ -30,19 +30,22 @@ Classifier.prototype.train = function(group, input)
 
 	incrementOrCreate(self.groupFrequencyCount, group);
 
+  // we only want to see words once per training example
   var seenWord = new Object();
 
   // TODO: Strip out non-alphanumeric characters.
 	input.split(" ").forEach(function(word) {
 		self.numWords += 1;
 
-    if(!seenWord[word])
-    {
-  		incrementOrCreate(self.wordFrequencyCount, word);
-      incrementOrCreate(self.groupWordTotal, group);
-      incrementOrCreateGroup(self.groupWordFrequencyCount, group, word);
+    var cleanWord = word.replace(/\W/g, '');
 
-      seenWord[word] = true;
+    if(!seenWord[cleanWord])
+    {
+  		incrementOrCreate(self.wordFrequencyCount, cleanWord);
+      incrementOrCreate(self.groupWordTotal, group);
+      incrementOrCreateGroup(self.groupWordFrequencyCount, group, cleanWord);
+
+      seenWord[cleanWord] = true;
     }
 	});
 }
@@ -70,14 +73,6 @@ Classifier.prototype.rank = function(input)
 {
   var self = this;
 
-  /**
-  console.log("Training examples: " + self.numTrainingExamples);
-  console.log("Group word totals: ");
-  console.log(JSON.stringify(self.groupWordTotal));
-  console.log("Group word frequency counts: ");
-  console.log(JSON.stringify(self.groupWordFrequencyCount));
-  */
-
 	var groups = Object.keys(self.groupFrequencyCount);
 	var groupProb = self.getGroupProbabilities();
 
@@ -104,6 +99,10 @@ Classifier.prototype.rank = function(input)
 	});
 
   groupLikelihood.sort(function(a,b){return a.probability < b.probability});
+
+  // TODO: turn the log(probability) back into the probability using 10^
+
+  // TODO: Divide the prob by the probability of the word which, while the same for all groups, would make the probability more accurate
 
 	return groupLikelihood;
 }
@@ -144,7 +143,7 @@ function incrementOrCreate(object, value)
 }
 
 /**
- * Looks for a field with the given value in the object and if found increments it. Otherwise, creates it with a value of 1.
+ * Looks for a field with the given group and value in the object and if found increments it. Otherwise, creates it with a value of 1.
  */
 function incrementOrCreateGroup(object, group, value)
 {
@@ -157,5 +156,3 @@ function incrementOrCreateGroup(object, group, value)
 }
 
 module.exports = Classifier;
-
-module.exports.incrementOrCreate = incrementOrCreate;
