@@ -1,4 +1,4 @@
-classify.js WORK IN PROGRESS
+classify.js
 ===========
 
 Naieve Bayesian Classifier in pure javascript.
@@ -46,9 +46,11 @@ However, in some cases it might be useful to retrieve the rank order of all poss
 
     var groupList = Classifier.rankGroups("Some input that should be GROUP-B");
     
-    // groupList = [ { group: 'GROUP-B', probability: 0.75 }, { group: 'GROUP-A', probability: 0.45 } ]
+    // groupList = [ { group: 'GROUP-B', probability: -0.75 }, { group: 'GROUP-A', probability: -0.45 } ]
     
-Note that the probabilities listed should not be considered accurate on their own, they are only useful in comparison to one another. For example, if a group has a probability of 0.8 that does not mean it's 80% likely, it means that it is four times more likely than something with a probability of 0.2. This is due to the nature of Naieve Bayesian statistics, where the form of the distribution is not known. 
+Note that the probabilities listed should not be considered accurate on their own, they are only useful in comparison to one another. They are not actual probabilities since in many cases the numeric values of the probabilities would be too small and instead are the logarithm of the calculated probability weights. 
+
+For example, if a group has a probability of 0.8 that does not mean it's 80% likely, it means that it is four times more likely than something with a probability of 0.2. This is due to the nature of Naieve Bayesian statistics, where the form of the distribution is not known. 
 
 About Bayesian Statistics 
 ---------
