@@ -1,7 +1,7 @@
 {
-  "name": "classify",
+  "name": "classify.js",
   "description": "Bayesian classifier for Node.js applications.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "node": ">=0.6.13"
   },
@@ -10,6 +10,7 @@
     "email": "sean@fogstack.com"
   },
   "keywords": [
+    "bayes",
     "classifier",
     "learning",
     "matrix"
