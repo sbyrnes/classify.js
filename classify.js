@@ -26,21 +26,22 @@ Classifier.prototype.train = function(group, input)
 {
   var self = this;
 
-	self.numTrainingExamples += 1;
+  self.numTrainingExamples += 1;
 
-	incrementOrCreate(self.groupFrequencyCount, group);
+  incrementOrCreate(self.groupFrequencyCount, group);
 
-  // we only want to see words once per training example
+  // We only want to see words once per training example
   var seenWord = new Object();
 
-  // TODO: Strip out non-alphanumeric characters.
-	input.split(" ").forEach(function(word) {
-		self.numWords += 1;
-
+  // For each word in the input, increment all the counters
+  input.split(" ").forEach(function(word) {
+    // Clean non-alphanumeric characters from the input
     var cleanWord = word.replace(/\W/g, '');
 
     if(!seenWord[cleanWord])
     {
+      self.numWords += 1;
+
   		incrementOrCreate(self.wordFrequencyCount, cleanWord);
       incrementOrCreate(self.groupWordTotal, group);
       incrementOrCreateGroup(self.groupWordFrequencyCount, group, cleanWord);
@@ -81,7 +82,12 @@ Classifier.prototype.rank = function(input)
 	groups.forEach(function(group) {
 		groupLikelihood[counter] = new Object();
 		groupLikelihood[counter].group = group;
-		groupLikelihood[counter].probability = Math.log(groupProb[group]); // use logs of probability so we can add them later
+
+    // Start with the overall probability of this group
+    groupLikelihood[counter].probability = Math.log(groupProb[group]);
+
+    // Note that we use logs of probability so we can add them later. Multiplying the
+    // floating point values together will result in the values getting too small to track.
 
 		counter++;
 	});
@@ -93,16 +99,24 @@ Classifier.prototype.rank = function(input)
       var groupWordFreqCount = self.groupWordFrequencyCount[group];
 			if(groupWordFreqCount[word])
 			{
-				groupLikelihood[i].probability += Math.log(groupWordFreqCount[word]/self.groupFrequencyCount[group]) // TODO this needs to the probability of that word in that group
+        // Add to the freqency of occurrence of this word in this group.
+				groupLikelihood[i].probability += Math.log(groupWordFreqCount[word]/self.groupFrequencyCount[group]);
+
+        // TODO: This should work, but right now not so much
+        // Divide the prob by the overall probability of the word in all examples which.
+        // Note that this does not affect the results as it is the same for all groups,
+        // but it makes the probability more accurate.
+        // groupLikelihood[i].probability -= Math.log(self.wordFrequencyCount[word]/self.numWords);
 			}
 		}
 	});
 
   groupLikelihood.sort(function(a,b){return a.probability < b.probability});
 
-  // TODO: turn the log(probability) back into the probability using 10^
-
-  // TODO: Divide the prob by the probability of the word which, while the same for all groups, would make the probability more accurate
+  // Since we used logs to keep the floating point numbers reasonable, we need to move back into probability space
+  groupLikelihood.forEach(function (data) {
+    data.probability = Math.pow(10, data.probability);
+  });
 
 	return groupLikelihood;
 }

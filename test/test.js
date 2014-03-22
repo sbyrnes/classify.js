@@ -35,9 +35,9 @@ exports['test rank#withTraining'] = function(beforeExit, assert){
 
 	var rankedGroups = classifier.rank("Some other input that belongs in GROUP-B");
 
-    assert.equal(2, rankedGroups.length);
-    assert.equal("GROUP-B", rankedGroups[0].group);
-    assert.equal("GROUP-A", rankedGroups[1].group);
+  assert.equal(2, rankedGroups.length);
+  assert.equal("GROUP-B", rankedGroups[0].group);
+  assert.equal("GROUP-A", rankedGroups[1].group);
 };
 
 // Test no training inputs
