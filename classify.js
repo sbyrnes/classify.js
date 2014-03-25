@@ -4,6 +4,8 @@
  * Javascript library for automated classification using Bayesian probability.
  */
 
+ var fs = require('fs');
+
  // Storage for the input parameters for the model
  var Classifier = function()
  {
@@ -51,6 +53,20 @@ Classifier.prototype.train = function(group, input)
 	});
 }
 
+/**
+ * Trainsthe classifier with a known example from the given file.
+ *
+ * @param filename A file with a known classification
+ * @param group The group the input should be classified as belonging to
+ * @returns none
+ */
+Classifier.prototype.trainFromFile = function(group, filename)
+{
+  var self = this;
+
+  self.train(group, fs.readFileSync(filename, "utf-8"));
+}
+
  /** Provides the most likely group classification for an input.
  *
  * @param input An input value with unknown classification
@@ -63,6 +79,18 @@ Classifier.prototype.classify = function(input)
 	if(topRanked) return topRanked.group;
 
 	return "No Matches";
+}
+
+ /** Provides the most likely group classification for a file.
+ *
+ * @param filename The path to a file with unknown classification
+ * @returns The group the input is most likely a member of
+ */
+Classifier.prototype.classifyFile = function(filename)
+{
+  // Use synchronous IO here since, honestly, we can't do anything else
+  // until we read the file anyway.
+  return this.classify(fs.readFileSync(filename, "utf-8"));
 }
 
  /** Provides all possible groups for an input in ranked order of probability of matching.

@@ -61,5 +61,20 @@ exports['test classify#withTraining'] = function(beforeExit, assert){
 
 	var group = classifier.classify("Something that should be GROUP-B");
 
-    assert.equal("GROUP-B", group);
+  assert.equal("GROUP-B", group);
+};
+
+// Test training from files
+exports['test classify#fromFiles'] = function(beforeExit, assert){
+  var classifier = new Classifier();
+
+  classifier.trainFromFile("GROUP-A", "test/sample/sample1.txt");
+  classifier.trainFromFile("GROUP-A", "test/sample/sample2.txt");
+  classifier.trainFromFile("GROUP-A", "test/sample/sample3.txt");
+  classifier.trainFromFile("GROUP-B", "test/sample/sample4.txt");
+  classifier.trainFromFile("GROUP-B", "test/sample/sample5.txt");
+
+  var group = classifier.classify("Something that should be GROUP-B");
+
+  assert.equal("GROUP-B", group);
 };
