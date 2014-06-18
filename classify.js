@@ -6,6 +6,10 @@
 
  var fs = require('fs');
 
+ // Probability to assign to words that do not appear in a group. We cannot use
+ // zero because the log(0) is negative infinity. 
+ var ZERO_PROBABILITY = 0.00000001;
+
  // Storage for the input parameters for the model
  var Classifier = function()
  {
@@ -38,7 +42,7 @@ Classifier.prototype.train = function(group, input)
   // For each word in the input, increment all the counters
   input.split(" ").forEach(function(word) {
     // Clean non-alphanumeric characters from the input
-    var cleanWord = word.replace(/\W/g, '');
+    var cleanWord = scrubWord(word);
 
     if(!seenWord[cleanWord])
     {
@@ -120,24 +124,35 @@ Classifier.prototype.rank = function(input)
 		counter++;
 	});
 
-	input.split(" ").forEach(function(word) {
+  var words = input.split(" ");
+	for(var j = 0; j < words.length; j++)
+  {
+    var cleanWord = scrubWord(words[j])
+
 		for(var i = 0; i < groupLikelihood.length; i++)
 		{
 			var group = groupLikelihood[i].group;
       var groupWordFreqCount = self.groupWordFrequencyCount[group];
-			if(groupWordFreqCount[word])
+
+			if(groupWordFreqCount[cleanWord])
 			{
         // Add to the freqency of occurrence of this word in this group.
-				groupLikelihood[i].probability += Math.log(groupWordFreqCount[word]/self.groupFrequencyCount[group]);
+				var individualProb = groupWordFreqCount[cleanWord]/self.groupFrequencyCount[group];
+        var logProb = Math.log(individualProb);
+
+        groupLikelihood[i].probability += logProb;
 
         // TODO: This should work, but right now not so much
         // Divide the prob by the overall probability of the word in all examples which.
         // Note that this does not affect the results as it is the same for all groups,
         // but it makes the probability more accurate.
         // groupLikelihood[i].probability -= Math.log(self.wordFrequencyCount[word]/self.numWords);
-			}
+			} else {
+        // we have to penalize entires that don't have this word, but we can't use the log(0)
+        groupLikelihood[i].probability += Math.log(ZERO_PROBABILITY);
+      }
 		}
-	});
+	}
 
   groupLikelihood.sort(function(a,b){return a.probability < b.probability});
 
@@ -195,6 +210,11 @@ function incrementOrCreateGroup(object, group, value)
 
   if(myGroup[value]) myGroup[value] += 1;
   else 		          myGroup[value] = 1;
+}
+
+function scrubWord(word)
+{
+  return word.replace(/\W/g, '');
 }
 
 module.exports = Classifier;

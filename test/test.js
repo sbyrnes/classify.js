@@ -78,3 +78,15 @@ exports['test classify#fromFiles'] = function(beforeExit, assert){
 
   assert.equal("GROUP-B", group);
 };
+
+// Test rank with single inputs
+exports['test classify#singleInput'] = function(beforeExit, assert){
+  var classifier = new Classifier();
+
+  classifier.train("GROUP-A", "GROUP-A");
+  classifier.train("GROUP-B", "GROUP-B");
+
+  var group = classifier.classify("GROUP-B");
+
+  assert.equal("GROUP-B", group);
+};
