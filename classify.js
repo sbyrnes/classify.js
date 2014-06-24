@@ -7,7 +7,7 @@
  var fs = require('fs');
 
  // Probability to assign to words that do not appear in a group. We cannot use
- // zero because the log(0) is negative infinity. 
+ // zero because the log(0) is negative infinity.
  var ZERO_PROBABILITY = 0.00000001;
 
  // Storage for the input parameters for the model
@@ -154,7 +154,7 @@ Classifier.prototype.rank = function(input)
 		}
 	}
 
-  groupLikelihood.sort(function(a,b){return a.probability < b.probability});
+  groupLikelihood.sort(function(a,b){return b.probability - a.probability});
 
   // Since we used logs to keep the floating point numbers reasonable, we need to move back into probability space
   groupLikelihood.forEach(function (data) {
